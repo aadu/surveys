@@ -6,3 +6,8 @@
 // @import '~materialize-css/sass/materialize.scss'
 
 // can add Boostrap overrides, additional Sass/CSS below...
+$bg-color: #f9f9f9;
+
+body {
+  background-color: $bg-color;
+}
