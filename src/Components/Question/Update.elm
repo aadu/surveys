@@ -13,7 +13,7 @@ update msg model =
         Input input ->
             { model | promptInput = input } ! []
 
-        Edit ->
+        Edit modalId ->
             { model | edit = not model.edit } ! []
 
         Save ->

@@ -38,19 +38,27 @@ header question =
 menu : Model -> Html Msg
 menu question =
     ul [ class "right" ]
-        [ questionItem
-            (if question.edit then
-                saveBtn question
-             else
-                editBtn question
-            )
-        , questionItem (deleteBtn question)
-        , questionItem (upBtn question)
+        [ saveOrEditBtn question
+        , deleteBtn question
+        , upBtn question
+        , downBtn question
         ]
 
 
 questionItem view =
-    li [ style [ ( "margin-bottom", "3px" ) ] ] [ view ]
+    li [ class "right", style [ ( "margin-bottom", "3px" ) ] ] [ view ]
+
+
+saveOrEditBtn : Model -> Html Msg
+saveOrEditBtn model =
+    if not model.edit then
+        editBtn model "edit"
+    else if model.promptInput == model.prompt && model.prompt /= "" then
+        editBtn model "done"
+    else if model.promptInput /= "" then
+        saveBtn model
+    else
+        text ""
 
 
 saveBtn : Model -> Html Msg
@@ -65,28 +73,60 @@ saveBtn model =
               else
                 ""
              )
-                ++ "waves-effect waves-light btn-floating"
+                ++ "waves-effect waves-light btn-floating blue btn-large"
             )
         ]
         [ i [ class "material-icons" ] [ text "save" ] ]
+        |> questionItem
 
 
-editBtn : Model -> Html Msg
-editBtn model =
+editBtn : Model -> String -> Html Msg
+editBtn model icon =
     a
-        [ onClick Edit
+        [ onClick (Edit (editId model))
         , class "waves-effect waves-light btn-floating"
         ]
-        [ i [ class "material-icons" ] [ text "edit" ] ]
+        [ i [ class "material-icons" ]
+            [ text icon
+            ]
+        ]
+        |> questionItem
 
 
 upBtn : Model -> Html Msg
 upBtn model =
-    a
-        [ onClick Edit
-        , class "waves-effect waves-light btn-floating"
-        ]
-        [ i [ class "material-icons" ] [ text "swap_vert" ] ]
+    case model.placeInList of
+        FirstAndLast ->
+            text ""
+
+        First ->
+            text ""
+
+        _ ->
+            a
+                [ onClick Up
+                , class "waves-effect waves-light btn-floating"
+                ]
+                [ i [ class "fa fa-angle-up", (attribute "aria-hidden" "true") ] [] ]
+                |> questionItem
+
+
+downBtn : Model -> Html Msg
+downBtn model =
+    case model.placeInList of
+        FirstAndLast ->
+            text ""
+
+        Last ->
+            text ""
+
+        _ ->
+            a
+                [ onClick Down
+                , class "waves-effect waves-light btn-floating"
+                ]
+                [ i [ class "fa fa-angle-down", (attribute "aria-hidden" "true") ] [] ]
+                |> questionItem
 
 
 deleteBtn : Model -> Html Msg
@@ -96,13 +136,15 @@ deleteBtn question =
             ("delete-question-modal-" ++ (question.number |> toString))
     in
         div []
-            [ button
-                [ onClick Delete
+            [ deleteDialog modalId question
+            , button
+                [ onClick (DeleteDialog modalId)
                 , class "waves-effect waves-light btn-floating"
                 , attribute "data-target" modalId
                 ]
                 [ i [ class "material-icons" ] [ text "close" ] ]
             ]
+            |> questionItem
 
 
 label : Model -> Html Msg
@@ -123,23 +165,40 @@ deleteDialog : String -> Model -> Html Msg
 deleteDialog modalId question =
     div [ id modalId, class "modal" ]
         [ div [ class "modal-content" ]
-            [ h4 [] [ text "Are you sure?" ]
-            , p [] [ text deleteMsg ]
+            [ h4 []
+                [ a
+                    [ href "#!"
+                    , class "btn-floating modal-action modal-close waves-effect btn-flat hoverable right"
+                    ]
+                    [ i [ class "material-icons black-text" ] [ text "close" ] ]
+                , text
+                    ("Are you sure you want to delete question " ++ (question.number |> toString) ++ "?")
+                ]
+            , if question.prompt /= "" then
+                div [ class "panel-card yellow lighten-5 z-depth-2", style [ ( "padding", "8px" ) ] ]
+                    [ promptText question
+                    ]
+              else
+                text ""
             ]
         , div [ class "modal-footer" ]
             [ a
                 [ href "#!"
-                , class "modal-action modal-close waves-effect waves-red btn red"
-                , onClick (Edit)
+                , class "modal-action modal-close waves-effect waves-red btn red hoverable"
+                , onClick (Delete)
                 ]
-                [ text ("Delete Question " ++ (question.number |> toString)) ]
+                [ text "Delete Question" ]
             , a
                 [ href "#!"
                 , class "modal-action modal-close waves-effect waves-green btn-flat"
                 ]
-                [ text "Nope, I changed my mind" ]
+                [ text "Cancel" ]
             ]
         ]
+
+
+editId question =
+    "edit-q" ++ (question.number |> toString)
 
 
 editPrompt : Model -> Html Msg
@@ -149,10 +208,11 @@ editPrompt question =
         [ if question.edit then
             textarea
                 [ onInput Input
+                , style [ ( "padding", "10px" ) ]
                 , placeholder "Enter question prompt text"
                 , value question.promptInput
-                , class "materialize-textarea"
-                , id ("edit-q" ++ (question.number |> toString))
+                , class "materialize-textarea yellow lighten-5"
+                , id (editId question)
                 ]
                 []
           else
@@ -169,7 +229,7 @@ promptText question =
                 |> String.lines
                 |> List.map text
     in
-        p [ onDoubleClick Edit ] (List.intersperse (br [] []) textParts)
+        p [ onDoubleClick (Edit (editId question)), style [ ( "padding", "10px" ) ] ] (List.intersperse (br [] []) textParts)
 
 
 replaceSpaces : String -> String

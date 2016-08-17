@@ -44,7 +44,11 @@ questionList model =
 questionsMenu : Html Msg
 questionsMenu =
     div [ class "row" ]
-        [ a [ class "btn-floating waves-effect hoverable", onClick AddQuestion ]
+        [ a
+            [ class "btn-floating waves-effect hoverable right btn-large"
+            , onClick AddQuestion
+            , style [ ( "margin-right", "10px" ) ]
+            ]
             [ i [ class "material-icons" ] [ text "add" ]
             ]
         ]
