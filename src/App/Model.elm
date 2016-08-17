@@ -1,13 +1,17 @@
-module App.Model exposing (..)
+module App.Model exposing (model, Model)
 
-import App.Messages exposing (Msg)
-import Components.Question.Model as Question
+import Material
+import Components.Question as Question
 
 
 type alias Model =
-    { questions : List Question.Model }
+    { question : Question.Model
+    , mdl : Material.Model
+    }
 
 
-init : ( Model, Cmd Msg )
-init =
-    { questions = [] } ! []
+model : Model
+model =
+    { question = (Question.model 1)
+    , mdl = Material.model
+    }

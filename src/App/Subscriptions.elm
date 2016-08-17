@@ -1,9 +1,9 @@
 module App.Subscriptions exposing (subscriptions)
 
-import App.Model exposing (Model)
-import App.Messages exposing (..)
+import App.Model exposing (Model, model)
+import App.Update exposing (..)
+import Material.Layout as Layout
 
 
-subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Layout.subs Mdl model
